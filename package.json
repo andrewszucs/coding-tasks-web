@@ -8,6 +8,7 @@
     "@material-ui/styles": "^4.6.0",
     "@reach/router": "^1.2.1",
     "formik": "^2.0.3",
+    "numbro": "^2.1.2",
     "query-string": "^6.8.3",
     "react": "^16.11.0",
     "react-dom": "^16.11.0",
@@ -15,6 +16,9 @@
     "react-scripts": "3.2.0",
     "react-select": "^3.0.8",
     "redux": "^4.0.4",
+    "redux-devtools-extension": "^2.13.8",
+    "redux-observable": "^1.2.0",
+    "rxjs": "^6.5.3",
     "typescript": "3.7.2",
     "yup": "^0.27.0"
   },
