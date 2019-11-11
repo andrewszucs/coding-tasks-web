@@ -8,7 +8,8 @@ import {
   Button,
   TextField,
   InputAdornment,
-  IconButton
+  IconButton,
+  CircularProgress
 } from "@material-ui/core";
 
 import { makeStyles } from "@material-ui/core/styles";
@@ -95,8 +96,13 @@ function LoginPage({
           )
         }}
       />
-      <Button variant="contained" color="primary" type="submit">
-        Login
+      <Button
+        variant="contained"
+        color="primary"
+        type="submit"
+        disabled={isLoadingLogin}
+      >
+        {isLoadingLogin ? <CircularProgress size={24} /> : "Login"}
       </Button>
     </form>
   );
