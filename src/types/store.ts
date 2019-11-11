@@ -34,7 +34,10 @@ export const FETCH_COUNTRIES_FAILED = "FETCH_COUNTRIES_FAILED";
 
 interface FetchCountriesRequestActionType {
   type: typeof FETCH_COUNTRIES_REQUEST;
-  payload: string;
+  payload: {
+    name: string;
+    token: string;
+  };
 }
 
 interface FetchCountriesFulfilledActionType {
@@ -60,7 +63,10 @@ export const FETCH_COUNTRY_DETAIL_FAILED = "FETCH_COUNTRY_DETAIL_FAILED";
 
 interface FetchCountryDetailRequestActionType {
   type: typeof FETCH_COUNTRY_DETAIL_REQUEST;
-  payload: string;
+  payload: {
+    code: string;
+    token: string;
+  };
 }
 
 interface FetchCountryDetailFulfilledActionType {

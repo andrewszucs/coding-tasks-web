@@ -103,8 +103,12 @@ const useStyles = makeStyles({
   currencyValue: {
     textAlign: "center"
   },
-  disabledCard: {},
-  selectedCard: {}
+  disabledCard: {
+    opacity: "0.5"
+  },
+  selectedCard: {
+    border: "1px solid #3f50b5"
+  }
 });
 
 interface Props
@@ -232,11 +236,17 @@ function ExchangePage({
           ) {
             return;
           }
-          fetchCountry((clickedItem as OptionTypeBase).value);
+          fetchCountry({
+            code: (clickedItem as OptionTypeBase).value,
+            token: loggedInUser.token
+          });
         }}
         onInputChange={(inputValue, { action }) => {
           if (action !== "input-change" || inputValue.length <= 0) return;
-          fetchCountries(inputValue);
+          fetchCountries({
+            name: inputValue,
+            token: loggedInUser.token
+          });
         }}
         noOptionsMessage={({ inputValue }) => {
           if (inputValue !== "") {

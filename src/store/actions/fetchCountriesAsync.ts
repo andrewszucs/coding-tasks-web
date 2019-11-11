@@ -7,10 +7,21 @@ import {
   ApiServiceError
 } from "../../types";
 
-export function fetchCountriesRequest(name: string): FetchCountriesActionTypes {
+export interface FetchCountriesRequestParams {
+  name: string;
+  token: string;
+}
+
+export function fetchCountriesRequest({
+  name,
+  token
+}: FetchCountriesRequestParams): FetchCountriesActionTypes {
   return {
     type: FETCH_COUNTRIES_REQUEST,
-    payload: name
+    payload: {
+      name,
+      token
+    }
   };
 }
 

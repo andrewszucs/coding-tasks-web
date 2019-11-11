@@ -2,9 +2,7 @@ import {
   ValueState,
   SetValueActionTypes,
   SET_VALUE,
-  SET_SELECTED_COUNTRY,
-  SetValueActionType,
-  SetSelectedCountryActionType
+  SET_SELECTED_COUNTRY
 } from "../../types";
 
 const initialState: ValueState = {

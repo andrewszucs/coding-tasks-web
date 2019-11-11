@@ -7,12 +7,21 @@ import {
   FETCH_COUNTRY_DETAIL_FAILED
 } from "../../types";
 
-export function fetchCountryDetailRequest(
-  name: string
-): FetchCountryDetailActionTypes {
+export interface FetchCountryDetailRequestParams {
+  code: string;
+  token: string;
+}
+
+export function fetchCountryDetailRequest({
+  code,
+  token
+}: FetchCountryDetailRequestParams): FetchCountryDetailActionTypes {
   return {
     type: FETCH_COUNTRY_DETAIL_REQUEST,
-    payload: name
+    payload: {
+      code,
+      token
+    }
   };
 }
 

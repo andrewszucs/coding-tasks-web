@@ -9,6 +9,7 @@ import {
 } from "../../types";
 import { fetchCountriesFulfilled, fetchCountriesFailed } from "../actions";
 import { Services } from "../../services";
+import { FetchCountriesRequestParams } from "../actions/fetchCountriesAsync";
 
 const fetchCountries: Epic<
   FetchCountriesActionTypes,
@@ -19,7 +20,9 @@ const fetchCountries: Epic<
   action$.pipe(
     ofType(FETCH_COUNTRIES_REQUEST),
     switchMap(action =>
-      from(apiService.getCountries(action.payload as string)).pipe(
+      from(
+        apiService.getCountries(action.payload as FetchCountriesRequestParams)
+      ).pipe(
         map(fetchCountriesFulfilled),
         catchError((error: ApiServiceError) => of(fetchCountriesFailed(error)))
       )

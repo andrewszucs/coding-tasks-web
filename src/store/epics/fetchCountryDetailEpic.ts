@@ -1,6 +1,6 @@
 import { from, of } from "rxjs";
 import { ofType, Epic } from "redux-observable";
-import { map, catchError, switchMap, tap } from "rxjs/operators";
+import { map, catchError, switchMap } from "rxjs/operators";
 import {
   ApiServiceError,
   FetchCountryDetailActionTypes,
@@ -12,6 +12,7 @@ import {
   fetchCountryDetailFulfilled,
   fetchCountryDetailFailed
 } from "../actions";
+import { FetchCountryDetailRequestParams } from "../actions/fetchCountryDetailsAsync";
 
 const fetchCountryDetail: Epic<
   FetchCountryDetailActionTypes,
@@ -22,7 +23,11 @@ const fetchCountryDetail: Epic<
   action$.pipe(
     ofType(FETCH_COUNTRY_DETAIL_REQUEST),
     switchMap(action =>
-      from(apiService.getCountryDetail(action.payload as string)).pipe(
+      from(
+        apiService.getCountryDetail(
+          action.payload as FetchCountryDetailRequestParams
+        )
+      ).pipe(
         map(fetchCountryDetailFulfilled),
         catchError((error: ApiServiceError) =>
           of(fetchCountryDetailFailed(error))
