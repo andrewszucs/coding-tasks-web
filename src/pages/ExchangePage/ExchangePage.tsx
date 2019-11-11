@@ -1,6 +1,6 @@
 import React from "react";
-import { RouteComponentProps, Link } from "@reach/router";
-import Select, { OptionsType, ValueType, OptionTypeBase } from "react-select";
+import { RouteComponentProps, Link, Redirect } from "@reach/router";
+import Select, { OptionTypeBase } from "react-select";
 import {
   Typography,
   Button,
@@ -17,9 +17,18 @@ import {
   FetchCountriesRequestType,
   FetchCountryDetailRequestType,
   fetchCountriesRequest,
-  fetchCountryDetailRequest
+  fetchCountryDetailRequest,
+  setValue,
+  SetValueType,
+  SetSelectedCountryType,
+  setSelectedCountry
 } from "../../store/actions";
-import { CountrySuggestionsState, CountryShortlistState } from "../../types";
+import {
+  CountrySuggestionsState,
+  CountryShortlistState,
+  ValueState,
+  User
+} from "../../types";
 import { AppState } from "../../store/reducers";
 
 const useStyles = makeStyles({
@@ -93,25 +102,35 @@ const useStyles = makeStyles({
   },
   currencyValue: {
     textAlign: "center"
-  }
+  },
+  disabledCard: {},
+  selectedCard: {}
 });
 
 interface Props
   extends RouteComponentProps,
     CountrySuggestionsState,
-    CountryShortlistState {
+    CountryShortlistState,
+    ValueState {
   fetchCountries: FetchCountriesRequestType;
   fetchCountry: FetchCountryDetailRequestType;
+  setValue: SetValueType;
+  setSelectedCountry: SetSelectedCountryType;
+  loggedInUser: User | null;
 }
 
-// TODO: Add components and styling
 function ExchangePage({
   fetchCountries,
   fetchCountry,
   countrySuggestions,
   isLoadingCountrySuggestions,
   countryShortlist,
-  isLoadingCountryDetail
+  isLoadingCountryDetail,
+  value,
+  setValue,
+  selectedCountry,
+  setSelectedCountry,
+  loggedInUser
 }: Props) {
   const classes = useStyles();
 
@@ -121,18 +140,44 @@ function ExchangePage({
       name,
       flag,
       population: numbro(population).format({ average: true, mantissa: 2 }),
+      isDisabled: currencies.filter(({ rate }) => Boolean(rate)).length <= 0,
       currencies: currencies.map(({ code, name, symbol, rate }) => ({
         name,
         code,
         symbol,
-        value: rate
-          ? (290 * rate).toLocaleString("en-US", {
-              maximumFractionDigits: 0
-            })
-          : "No data"
+        rate,
+        getValue: (suffix: string): string | undefined =>
+          rate
+            ? `${(value * rate).toLocaleString("en-US", {
+                maximumFractionDigits: 0
+              })} ${suffix}`
+            : undefined
       }))
     })
   );
+
+  const selectedCountryObj = countries.find(({ id }) => id === selectedCountry);
+  const selectedCountryName = selectedCountryObj ? selectedCountryObj.name : "";
+
+  const selectedCurrency =
+    selectedCountryObj &&
+    selectedCountryObj.currencies.reduce((acc, curr) => {
+      if (acc.rate && curr.rate && curr.rate < acc.rate) {
+        acc = curr;
+      } else if (curr.rate && !acc.rate) {
+        acc = curr;
+      }
+      return acc;
+    });
+
+  const sendString = `${value} SEK`;
+  const receiveString = selectedCurrency
+    ? `${selectedCurrency.getValue(selectedCurrency.code)}`
+    : "";
+
+  if (!loggedInUser || !loggedInUser.token) {
+    return <Redirect from="/" to="/login" noThrow />;
+  }
 
   return (
     <div className={classes.root}>
@@ -144,8 +189,16 @@ function ExchangePage({
       >
         <div dir="rtl" className={classes.exchangeInput}>
           <TextField
-            placeholder="0"
             type="number"
+            value={value}
+            onChange={event =>
+              event.target.value
+                ? setValue(parseInt(event.target.value))
+                : setValue(0)
+            }
+            inputProps={{
+              min: 0
+            }}
             InputProps={{
               classes: {
                 input: classes.exchangeInputText
@@ -194,46 +247,63 @@ function ExchangePage({
       />
       <section className={`${classes.stretch} ${classes.countryList}`}>
         <div className={classes.listGrid}>
-          {countries.map(({ id, name, flag, population, currencies }) => (
-            <Card key={id}>
-              <CardActionArea>
-                <CardContent className={classes.cardContent}>
-                  <div
-                    style={{ backgroundImage: `url("${flag}")` }}
-                    className={classes.flagCircle}
-                  />
-                  <Typography variant="subtitle1">{name}</Typography>
-                  <Typography
-                    variant="caption"
-                    className={classes.populationContainer}
-                  >
-                    <Person className={classes.populationIcon} />
-                    {population}
-                  </Typography>
-                  <ul className={classes.currencyList}>
-                    {currencies.map(({ name, code, symbol, value }) => (
-                      <li className={classes.currencyRow} key={code}>
-                        <Typography
-                          variant="body1"
-                          className={classes.currencyName}
-                        >{`${name} (${code})`}</Typography>
-                        <Typography
-                          variant="h6"
-                          className={classes.currencyValue}
-                        >{`${value} ${symbol}`}</Typography>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-          ))}
+          {countries.map(
+            ({ id, name, flag, population, isDisabled, currencies }) => (
+              <Card
+                key={id}
+                className={`${isDisabled ? classes.disabledCard : ""} ${
+                  id === selectedCountry ? classes.selectedCard : ""
+                }`}
+              >
+                <CardActionArea
+                  disabled={isDisabled}
+                  onClick={() =>
+                    selectedCountry === id
+                      ? setSelectedCountry(null)
+                      : setSelectedCountry(id)
+                  }
+                >
+                  <CardContent className={classes.cardContent}>
+                    <div
+                      style={{ backgroundImage: `url("${flag}")` }}
+                      className={classes.flagCircle}
+                    />
+                    <Typography variant="subtitle1">{name}</Typography>
+                    <Typography
+                      variant="caption"
+                      className={classes.populationContainer}
+                    >
+                      <Person className={classes.populationIcon} />
+                      {population}
+                    </Typography>
+                    <ul className={classes.currencyList}>
+                      {currencies.map(({ name, code, symbol, getValue }) => (
+                        <li className={classes.currencyRow} key={code}>
+                          <Typography
+                            variant="body1"
+                            className={classes.currencyName}
+                          >{`${name} (${code})`}</Typography>
+                          <Typography
+                            variant="h6"
+                            className={classes.currencyValue}
+                          >
+                            {getValue(symbol) || "No data"}
+                          </Typography>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            )
+          )}
         </div>
       </section>
       <Button
         variant="contained"
         color="primary"
-        to={`/exchange?from=SEK&to=HUF&value=290&stage=confirm`}
+        disabled={!selectedCountry || value <= 0}
+        to={`/exchange?to=${selectedCountryName}&send=${sendString}&receive=${receiveString}&stage=confirm`}
         component={Link}
       >
         Continue
@@ -253,17 +323,24 @@ export default connect(
       countryShortlist,
       isLoadingCountryDetail,
       errorCountryDetail
-    }
+    },
+    values: { value, selectedCountry },
+    login: { loggedInUser }
   }: AppState) => ({
     countrySuggestions,
     isLoadingCountrySuggestions,
     errorCountrySuggestions,
     countryShortlist,
     isLoadingCountryDetail,
-    errorCountryDetail
+    errorCountryDetail,
+    value,
+    selectedCountry,
+    loggedInUser
   }),
   {
     fetchCountries: fetchCountriesRequest,
-    fetchCountry: fetchCountryDetailRequest
+    fetchCountry: fetchCountryDetailRequest,
+    setValue,
+    setSelectedCountry
   }
 )(ExchangePage);

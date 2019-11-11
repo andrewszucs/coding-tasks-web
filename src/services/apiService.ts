@@ -1,11 +1,37 @@
-import { Country, CountryDetail } from "../types";
+import { Country, CountryDetail, User, ApiServiceError } from "../types";
+import { LoginRequestParams } from "../store/actions/loginAsync";
 
 export type Fetch = (url: string, options?: object) => Promise<Response>;
 
 const BASE_URL = `http://localhost:8080/api`;
+const CLIENT_ID = "Coding-Tasks-Client";
 
 export default function createApiService(fetch: Fetch) {
   return {
+    login({ name, password }: LoginRequestParams) {
+      const base64EncodedUsernameAndPassword = new Buffer(
+        `${name}:${password}`
+      ).toString("base64");
+      return fetch(`${BASE_URL}/login`, {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${base64EncodedUsernameAndPassword}`,
+          "Client-Id": CLIENT_ID
+        }
+      })
+        .then(res =>
+          Promise.all([res.ok, res.statusText, res.json(), res.headers])
+        )
+        .then(([ok, _, json, headers]) => {
+          if (!ok) {
+            throw json as ApiServiceError;
+          }
+          return {
+            ...json.data,
+            token: headers.get("Authorization")
+          } as User;
+        });
+    },
     getCountries(name: string) {
       return fetch(`${BASE_URL}/country?search=${name}`, {
         headers: {
@@ -15,7 +41,7 @@ export default function createApiService(fetch: Fetch) {
         .then(res => Promise.all([res.ok, res.statusText, res.json()]))
         .then(([ok, _, json]) => {
           if (!ok) {
-            throw json;
+            throw json as ApiServiceError;
           }
           return json.result as Country[];
         });
@@ -29,7 +55,7 @@ export default function createApiService(fetch: Fetch) {
         .then(res => Promise.all([res.ok, res.statusText, res.json()]))
         .then(([ok, _, json]) => {
           if (!ok) {
-            throw json;
+            throw json as ApiServiceError;
           }
           return json.result as CountryDetail;
         });

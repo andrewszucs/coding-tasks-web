@@ -21,3 +21,9 @@ export interface ApiServiceError {
   error: string;
   code?: string;
 }
+
+export interface User {
+  id: string;
+  username: string;
+  token: string;
+}

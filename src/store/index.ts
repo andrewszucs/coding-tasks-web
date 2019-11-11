@@ -5,7 +5,7 @@ import rootEpic from "./epics";
 
 import { composeWithDevTools } from "redux-devtools-extension";
 import reducer, { AppState } from "./reducers";
-import { apiService, Services } from "../services";
+import { localStorageService, apiService, Services } from "../services";
 import {
   FetchCountriesActionTypes,
   FetchCountryDetailActionTypes
@@ -19,7 +19,7 @@ const epicMiddleware = createEpicMiddleware<
   AppState,
   Services
 >({
-  dependencies: { apiService: apiService }
+  dependencies: { apiService, localStorageService }
 });
 
 const store = createStore(

@@ -21,7 +21,6 @@ const fetchCountryDetail: Epic<
 > = (action$, _, { apiService }) =>
   action$.pipe(
     ofType(FETCH_COUNTRY_DETAIL_REQUEST),
-    tap(res => console.log("Request", res)),
     switchMap(action =>
       from(apiService.getCountryDetail(action.payload as string)).pipe(
         map(fetchCountryDetailFulfilled),

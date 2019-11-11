@@ -1,7 +1,9 @@
 import React, { useState } from "react";
-import { RouteComponentProps } from "@reach/router";
+import { RouteComponentProps, Redirect } from "@reach/router";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+
+import { connect } from "react-redux";
 import {
   Button,
   TextField,
@@ -11,6 +13,9 @@ import {
 
 import { makeStyles } from "@material-ui/core/styles";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
+import { AppState } from "../../store/reducers";
+import { loginRequest, LoginRequestType } from "../../store/actions";
+import { LoginState } from "../../types";
 
 // TODO: theme spacing
 const useStyles = makeStyles({
@@ -23,9 +28,16 @@ const useStyles = makeStyles({
   }
 });
 
-export default function LoginPage(props: RouteComponentProps) {
-  // TODO: when API req comes back it sets the token in the state
-  // if token is set already, Login should render a Redirect to /
+interface LoginPageProps extends RouteComponentProps, LoginState {
+  loginRequest: LoginRequestType;
+}
+
+function LoginPage({
+  loginRequest,
+  loggedInUser,
+  isLoadingLogin,
+  errorLogin
+}: LoginPageProps) {
   const [showPassword, setShowPassword] = useState(false);
 
   const classes = useStyles();
@@ -39,9 +51,13 @@ export default function LoginPage(props: RouteComponentProps) {
       password: Yup.string().required("Required")
     }),
     onSubmit: values => {
-      alert(JSON.stringify(values, null, 2));
+      loginRequest({ name: values.username, password: values.password });
     }
   });
+
+  if (loggedInUser && loggedInUser.token) {
+    return <Redirect from="/login" to="/" noThrow />;
+  }
 
   // TODO: Display errors on Textfield components
   // Also somewhere near button, Or Snackbar?
@@ -85,3 +101,14 @@ export default function LoginPage(props: RouteComponentProps) {
     </form>
   );
 }
+
+export default connect(
+  ({ login: { loggedInUser, errorLogin, isLoadingLogin } }: AppState) => ({
+    loggedInUser,
+    errorLogin,
+    isLoadingLogin
+  }),
+  {
+    loginRequest
+  }
+)(LoginPage);

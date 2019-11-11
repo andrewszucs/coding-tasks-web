@@ -1,9 +1,13 @@
 import React from "react";
-import { RouteComponentProps, Link } from "@reach/router";
+import { RouteComponentProps, Link, Redirect } from "@reach/router";
 import queryString from "query-string";
 
 import { Typography, Button } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
+import { User } from "../../types";
+
+import { connect } from "react-redux";
+import { AppState } from "../../store/reducers";
 
 const useStyles = makeStyles({
   root: {
@@ -18,6 +22,7 @@ const useStyles = makeStyles({
   },
   center: {
     display: "flex",
+    flexDirection: "column",
     textAlign: "center",
     justifyContent: "center"
   },
@@ -33,28 +38,43 @@ const useStyles = makeStyles({
   }
 });
 
-export default function ExchangeFlowPage({ location }: RouteComponentProps) {
+interface Props extends RouteComponentProps {
+  loggedInUser: User | null;
+}
+
+function ExchangeFlowPage({ uri, location, loggedInUser, ...rest }: Props) {
   const classes = useStyles();
 
-  const { from, stage, to, value } =
+  const { to, send, receive, stage } =
     (location && queryString.parse(location.search)) || {};
 
-  console.log(from, stage, to, value);
+  if (!loggedInUser || !loggedInUser.token) {
+    return (
+      <Redirect
+        from={location ? `${location.pathname}${location.search}` : "/exchange"}
+        to="/login"
+        noThrow
+      />
+    );
+  }
+
   switch (stage) {
     case "confirm":
       return (
         <div className={classes.root}>
-          <Typography
-            variant="h5"
+          <div
             className={`${classes.center} ${classes.verticalCenter} ${classes.stretch}`}
           >
-            Are you sure you want to send {value} {from} to {to}?
-          </Typography>
+            <Typography variant="h5" gutterBottom>
+              Are you sure you want to send {send} to {to}?
+            </Typography>
+            <Typography variant="subtitle1">That's {receive}!</Typography>
+          </div>
           <Button
             variant="contained"
             color="primary"
             className={classes.marginBottom}
-            to={`/exchange?from=${from}&to=${to}&value=${value}&stage=finish`}
+            to={`/exchange?to=${to}&send=${send}&receive=${receive}&stage=finish`}
             component={Link}
           >
             Confirm
@@ -72,7 +92,7 @@ export default function ExchangeFlowPage({ location }: RouteComponentProps) {
             variant="h5"
             className={`${classes.center} ${classes.verticalCenter} ${classes.stretch}`}
           >
-            You have successfully sent {value} {from} to {to}!
+            Your friend will receive {receive}!
           </Typography>
           <Button variant="contained" color="primary" to="/" component={Link}>
             Finish
@@ -81,3 +101,10 @@ export default function ExchangeFlowPage({ location }: RouteComponentProps) {
       );
   }
 }
+
+export default connect(
+  ({ login: { loggedInUser } }: AppState) => ({
+    loggedInUser
+  }),
+  {}
+)(ExchangeFlowPage);

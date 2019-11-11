@@ -1,4 +1,5 @@
-import { Country, ApiServiceError, CountryDetail } from "./apiService";
+import { Country, ApiServiceError, CountryDetail, User } from "./apiService";
+import { LoginRequestParams } from "../store/actions/loginAsync";
 
 /// State
 
@@ -12,6 +13,17 @@ export interface CountryShortlistState {
   countryShortlist: CountryDetail[];
   isLoadingCountryDetail: boolean;
   errorCountryDetail: ApiServiceError | null;
+}
+
+export interface ValueState {
+  value: number;
+  selectedCountry: string | null;
+}
+
+export interface LoginState {
+  loggedInUser: User | null;
+  isLoadingLogin: boolean;
+  errorLogin: ApiServiceError | null;
 }
 
 /// Fetch Countries
@@ -65,3 +77,51 @@ export type FetchCountryDetailActionTypes =
   | FetchCountryDetailRequestActionType
   | FetchCountryDetailFulfilledActionType
   | FetchCountryDetailFailedActionType;
+
+/// Login
+
+export const LOGIN_REQUEST = "LOGIN_REQUEST";
+export const LOGIN_FULFILLED = "LOGIN_FULFILLED";
+export const LOGIN_FAILED = "LOGIN_FAILED";
+
+interface LoginRequestActionType {
+  type: typeof LOGIN_REQUEST;
+  payload: LoginRequestParams;
+}
+
+interface LoginFulfilledActionType {
+  type: typeof LOGIN_FULFILLED;
+  payload: User;
+}
+
+interface LoginFailedActionType {
+  type: typeof LOGIN_FAILED;
+  payload: ApiServiceError;
+}
+
+export type LoginActionTypes =
+  | LoginRequestActionType
+  | LoginFulfilledActionType
+  | LoginFailedActionType;
+
+/// Set Value
+
+export const SET_VALUE = "SET_VALUE";
+
+export interface SetValueActionType {
+  type: typeof SET_VALUE;
+  payload: number;
+}
+
+/// Set Selected Country
+
+export const SET_SELECTED_COUNTRY = "SET_SELECTED_COUNTRY";
+
+export interface SetSelectedCountryActionType {
+  type: typeof SET_SELECTED_COUNTRY;
+  payload: string | null;
+}
+
+export type SetValueActionTypes =
+  | SetValueActionType
+  | SetSelectedCountryActionType;

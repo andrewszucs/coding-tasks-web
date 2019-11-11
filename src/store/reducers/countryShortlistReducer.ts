@@ -16,7 +16,6 @@ export function countryShortlistReducer(
   state = initialState,
   action: FetchCountryDetailActionTypes
 ): CountryShortlistState {
-  console.log(action);
   switch (action.type) {
     case FETCH_COUNTRY_DETAIL_REQUEST:
       return {
@@ -25,7 +24,12 @@ export function countryShortlistReducer(
       };
     case FETCH_COUNTRY_DETAIL_FULFILLED:
       return {
-        countryShortlist: [...state.countryShortlist, action.payload],
+        countryShortlist:
+          state.countryShortlist.findIndex(
+            country => country.alpha3Code === action.payload.alpha3Code
+          ) >= 0
+            ? state.countryShortlist
+            : [...state.countryShortlist, action.payload],
         isLoadingCountryDetail: false,
         errorCountryDetail: null
       };
